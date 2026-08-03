@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-MOVIES_CSV = "data/movies_final.csv"
+MOVIES_CSV = "data/tmdb_movies.csv"
 MOVIES_PARQUET = "data/movies_final.parquet"
 OLD_INTERACTIONS_DB = "data/interactions.db"
 NEW_DB = "data/movies.db"
@@ -57,7 +57,7 @@ def migrate():
         old_conn = sqlite3.connect(OLD_INTERACTIONS_DB)
 
         users = pd.read_sql_query("SELECT * FROM users", old_conn)
-        users.to_sql("users", old_conn, if_exists="replace", index=False)
+        users.to_sql("users", conn, if_exists="replace", index=False)
         print(f"  Saved {len(users):,} users to {NEW_DB}")
 
         interactions = pd.read_sql_query("SELECT * FROM interactions", old_conn)
