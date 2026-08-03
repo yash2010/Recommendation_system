@@ -9,12 +9,11 @@ Usage:
     python fetch_tmdb.py --use-exports                  # ~80k overnight
     python fetch_tmdb.py --languages en,ta,hi,te,ml     # more languages
     python fetch_tmdb.py --min-votes 20                 # stricter filter
-    python fetch_tmdb.py --no-wiki                      # skip Wikipedia merge
 """
 
 import argparse
 from data_pipeline.pipeline import TMDBPipeline
-from data_pipeline.config import PipelineConfig, TMDBConfig, WikipediaFallbackConfig
+from data_pipeline.config import PipelineConfig, TMDBConfig
 
 
 def parse_args():
@@ -24,7 +23,6 @@ def parse_args():
     parser.add_argument("--languages",   type=str,  default="en,ta")
     parser.add_argument("--min-votes",   type=int,  default=10)
     parser.add_argument("--use-exports", action="store_true")
-    parser.add_argument("--no-wiki",     action="store_true")
     parser.add_argument("--output",      type=str,  default="data/tmdb_movies.csv")
     parser.add_argument("--final-output",type=str,  default="data/movies_final.csv")
 
@@ -42,9 +40,6 @@ def main():
             max_pages    = args.pages,
             min_votes    = args.min_votes,
             output_path  = args.output,
-        ),
-        wiki = WikipediaFallbackConfig(
-            enabled = not args.no_wiki,
         ),
         final_output = args.final_output,
     )
