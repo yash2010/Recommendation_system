@@ -35,18 +35,9 @@ class TMDBConfig:
 
 
 @dataclass
-class WikipediaFallbackConfig:
-    enabled:    bool  = True
-    wiki_path:  str   = "data/movies_clean.csv"
-
-
-@dataclass
 class PipelineConfig:
     tmdb:         TMDBConfig              = field(default_factory=TMDBConfig)
-    wiki:         WikipediaFallbackConfig = field(default_factory=WikipediaFallbackConfig)
     final_output: str                     = "data/movies_final.csv"
 
-
 tmdb_config     = TMDBConfig()
-wiki_config     = WikipediaFallbackConfig()
 pipeline_config = PipelineConfig()
