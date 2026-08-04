@@ -25,27 +25,26 @@ class DataExporter:
             print(f"  {lang or 'unknown':6s} → {count:,}")
 
     def finalize(self, movies: list) -> pd.DataFrame:
-        """
-        Convert movies list to DataFrame, clean, and save.
-        """
         if not movies:
-            print("No movies to save.")
+            print("No new movies to save.")
             return pd.DataFrame()
 
         df = pd.DataFrame(movies)
-
-        before = len(df)
         df = df.dropna(subset=["title", "plotsummary"])
         df = df[df["plotsummary"].str.len() >= self.config.tmdb.min_overview_length]
-        df = df.drop_duplicates(subset=["movie_id"])
-        df = df.reset_index(drop=True)
-
-        print(f"\nCleaning: {before:,} -> {len(df):,} movies")
-        self.language_summary(df)
 
         output = self.config.final_output
+
+        if Path(output).exists():
+            existing = pd.read_csv(output, encoding="utf-8")
+            print(f"Existing movies: {len(existing):,}")
+            df = pd.concat([existing, df], ignore_index=True)
+
+        df = df.drop_duplicates(subset=["movie_id"], keep="first")
+        df = df.reset_index(drop=True)
+
         Path(output).parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output, index=False, encoding="utf-8")
 
-        print(f"\nFinal dataset saved to {output}")
-        print(f"Total movies: {len(df):,}")
+        print(f"Total movies after merge: {len(df):,}")
+        return df
