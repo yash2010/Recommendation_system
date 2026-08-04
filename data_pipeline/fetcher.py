@@ -26,11 +26,10 @@ class TMDBFetcher:
 
     def get(self, endpoint: str, params: dict = {}, retry: int = 0) -> dict | None:
         try:
-            # Use api_key param instead of Bearer token
-            params_with_key = {**params, "api_key": self.config.token}
             res = requests.get(
                 f"{self.config.base_url}{endpoint}",
-                params  = params_with_key,
+                headers = self.headers,      # ← use Bearer header, this was missing
+                params  = params,             # ← plain params, no api_key needed
                 timeout = self.config.timeout,
             )
 
