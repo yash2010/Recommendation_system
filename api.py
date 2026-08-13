@@ -4,14 +4,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query, Header, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from database import init_db, log_interaction, get_user_history, get_stats
 from pydantic import BaseModel, Field
 from recommender import Recommender
 from expanders.base import BaseExpander
 from expanders.ollama_expander import OllamaExpander
 from expanders.local_expander import LocalExpander
+from model.config import api_config, database_config, expander_config
 
-ACCESS_CODE = os.environ.get("ACCESS_CODE", "movies2026")
+ACCESS_CODE = os.environ.get(api_config.access_code_env_var)
 
 def verify_access(x_access_code: str = Header(None)):
     if ACCESS_CODE and x_access_code != ACCESS_CODE:
@@ -25,10 +27,11 @@ def _load_expander() -> BaseExpander:
     # set EXPANDER = local to use the model built and trained from scratch
     # the default expander is Ollama 
 
-    mode = os.environ.get("EXPANDER", "ollama").lower()
+    mode = expander_config.mode.lower()
     if mode == "local":
         try:
-            exp = LocalExpander()
+            run_dir = expander_config.local.run_dir or None
+            exp = LocalExpander(run_dir=run_dir)
             print("Using local expander")
             return exp
         except FileNotFoundError:
@@ -60,8 +63,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-    
 app = FastAPI(title="Semantic Movie Recommender", description="Find movies by describing what you want.", version="1.0.0", lifespan=lifespan,)
+app.add_middleware(CORSMiddleware,
+                   allow_origins = api_config.cors_allowed_origins,
+                   allow_credentials = True,
+                   allow_methods = ["GET", "POST"],
+                   allow_headers = ["*"],)
 
 # Response models - pydantix models
 class RecommendRequest(BaseModel):

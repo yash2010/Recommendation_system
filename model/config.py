@@ -1,67 +1,74 @@
-from dataclasses import dataclass
+import yaml
+from pathlib import Path
+from types import SimpleNamespace
 
-# Prompt 
-
-SYSTEM_PROMPT = """You are helping build training data for a movie search system.
-Given a vague movie query, expand it into a rich, specific description that would
-help find relevant movies in a database of plot summaries.
-
-Rules:
-- Add specific themes, motifs, and atmosphere words
-- Include genre terminology that appears in plot summaries
-- Mention narrative elements (unreliable narrator, nonlinear structure, etc.)
-- Keep it to 3-4 sentences
-- Output ONLY the expanded query, no preamble, no explanation
-- Never mention specific movie titles"""
-
-@dataclass
-class ModelConfig:
-
-    vocab_size: int = 8000  # no. of unique tokens  
-    max_src_len: int = 32   # max. input tokens
-    max_tar_len: int = 128  # max. output tokens
-
-    embed_dim: int = 256    # size of every token vector
-    num_heads: int = 8      # no. of attention heads
-    
-    num_layers: int = 4     # no. of transformer blocks encoder + decoder
-    ff_dim: int = 512       # hidden size of feedforward network (2x the embedded dimemsion)     
-    
-    dropout: float = 0.1    
-
-    pad_token_id: int = 0   # padding - fills the short queries to the same length 
-    sos_token_id: int = 1   # start of sentence
-    eos_token_id: int = 2   # end of sentence
-    unk_token_id: int = 3   # unknown token for the words which isn't included in the token
-
-@dataclass
-class TrainConfig:
-
-    data_path: str = "data/training_pairs.json"
-    train_split: float = 0.9
-
-    epochs: int =  50
-    batch_size:int = 8
-    learning_rate: float = 3e-4
-    warmup_steps: int = 100
-
-    weight_decay: float = 0.01
-    grad_clip: float = 1.0
-
-    save_dir: str = "artifacts/expander"
-    save_every: int = 10
-    log_every: int = 5
-
-@dataclass
-class InferenceConfig:
-
-    max_new_tokens: int = 128   # max. token to generate
-    temperature: float = 0.7    # creativity: lower = more focused, higher = more creative
-    top_k: int = 50             # samples from top 50 most similar/likely tokens
-
-model_config = ModelConfig()
-train_config = TrainConfig()
-inference_config = InferenceConfig()
+PROJECT_ROOT = Path(__file__).parent.parent
+TRAIN_YAML_PATH = PROJECT_ROOT/"config"/"train.yaml"
+API_YAML_PATH = PROJECT_ROOT/"config"/"api.yaml"
 
 
+
+def _load_yaml(path:Path) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+def _to_namespace(d:dict) -> SimpleNamespace:
+    ns = SimpleNamespace()
+    for key, value in d.items():
+        if isinstance(value, dict):
+            setattr(ns, key, _to_namespace(value))
+        else:
+            setattr(ns, key, value)
+    return ns
+
+# param imports form traim.yaml
+_train_yaml = _load_yaml(TRAIN_YAML_PATH)
+
+model_config = _to_namespace(_train_yaml["model"])
+train_config = _to_namespace(_train_yaml["train"])
+inference_config = _to_namespace(_train_yaml["inference"])
+RUNS_DIR = _train_yaml["runs_dir"]
+
+_active_tokenizer_name = _train_yaml["tokenizer"]
+_tokenizer_block = _train_yaml["tokenizers"][_active_tokenizer_name]
+ 
+tokenizer_config = _to_namespace(_tokenizer_block)
+tokenizer_config.name = _active_tokenizer_name
+tokenizer_config.class_ = _tokenizer_block["class"]
+
+# Single source of truth for BPE tokenizers: symbol -> the id it must land on,
+# derived from model_config so it can never drift out of sync with train.yaml.
+SPECIAL_TOKEN_IDS = {
+    "<PAD>": model_config.pad_token_id,
+    "<SOS>": model_config.sos_token_id,
+    "<EOS>": model_config.eos_token_id,
+    "<UNK>": model_config.unk_token_id,
+}
+# Ordered by id, since HuggingFace's tokenizers library assigns special-token
+# ids sequentially in the order this list is given.
+SPECIAL_TOKENS = sorted(SPECIAL_TOKEN_IDS, key=SPECIAL_TOKEN_IDS.get)
+
+
+def get_tokenizer_class(name: str = None):
+    """
+    Resolve a tokenizer class by name (module + class from train.yaml's
+    `tokenizers:` block). Defaults to whichever tokenizer is currently
+    active (`tokenizer:` in train.yaml) when no name is given.
+    """
+    import importlib
+
+    if name is None:
+        name = tokenizer_config.name
+
+    block = _train_yaml["tokenizers"][name]
+    module = importlib.import_module(block["module"])
+    return getattr(module, block["class"])
+
+# param imports from api.yaml
+_api_yaml = _load_yaml(API_YAML_PATH)
+
+api_config = _to_namespace(_api_yaml["api"])
+database_config = _to_namespace(_api_yaml["database"])
+expander_config = _to_namespace(_api_yaml["expander"])
+SYSTEM_PROMPT = _api_yaml["system_prompt"].strip()
 

@@ -1,12 +1,11 @@
 import json
 import torch 
 from torch.utils.data import Dataset, DataLoader
-from model.tokenizer import Tokenizer
 from model.config import model_config, train_config
 
 class MovieQueryDataset(Dataset):
 
-    def __init__(self, pairs: list[dict], tokenizer: Tokenizer):
+    def __init__(self, pairs: list[dict], tokenizer):
         self.pairs = pairs
         self.tokenizer = tokenizer
     
@@ -31,7 +30,7 @@ class MovieQueryDataset(Dataset):
             "tar_out": torch.tensor(tar_out, dtype=torch.long)
         }
 
-def build_dataloaders(data_path: str = None, batch_size: int = None,) -> tuple[DataLoader, DataLoader, Tokenizer]:
+def build_dataloaders(TokenizerClass, data_path: str = None, batch_size: int = None,) -> tuple:
 
     if data_path is None: data_path = train_config.data_path
     if batch_size is None: batch_size = train_config.batch_size
@@ -41,7 +40,7 @@ def build_dataloaders(data_path: str = None, batch_size: int = None,) -> tuple[D
     print(f"Loaded {len(pairs)} pairs from {data_path}")
 
     all_txts = [p["input"] for p in pairs] + [p["target"] for p in pairs]
-    tokenizer = Tokenizer()
+    tokenizer = TokenizerClass()
     tokenizer.build(all_txts)
     tokenizer.save("artifacts/expander/tokenizer.json")
 

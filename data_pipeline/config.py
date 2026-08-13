@@ -1,43 +1,32 @@
 import os
-from dataclasses import dataclass, field
+import yaml
+from pathlib import Path
+from types import SimpleNamespace
 from dotenv import load_dotenv
 
 load_dotenv()
 
-LANGUAGE_NAMES = {
-    "en": "English",
-    "ta": "Tamil",
-    "ko": "Korean",
-}
-
-@dataclass
-class TMDBConfig:
-    token:          str   = os.environ.get("TMDB_TOKEN", "")
-    base_url:       str   = "https://api.themoviedb.org/3"
-    delay:          float = 0.26
-    timeout:        int   = 10
-    max_retries:    int   = 3
-    languages:      list  = field(default_factory=lambda: ["en", "ta", "ko"])
-    min_votes:      int   = 10
-    min_popularity: float = 2.0
-    max_pages:      int   = 500
-    sort_by:        str   = "popularity.desc"
-    use_exports:            bool  = False
-    export_min_popularity:  float = 5.0
-    export_max_movies:      int   = 80000
-    max_cast:               int   = 3
-    min_overview_length:    int   = 30
-    include_posters:        bool  = True
-    poster_base_url:        str   = "https://image.tmdb.org/t/p/w500"
-    output_path:            str   = "data/tmdb_movies.csv"
-    checkpoint_every:       int   = 500
-    log_every:              int   = 10
+CONFIG_PATH = Path(__file__).parent / "config.yaml"
 
 
-@dataclass
-class PipelineConfig:
-    tmdb:         TMDBConfig              = field(default_factory=TMDBConfig)
-    final_output: str                     = "data/movies_final.csv"
+def _load_yaml() -> dict:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
-tmdb_config     = TMDBConfig()
-pipeline_config = PipelineConfig()
+
+def _to_namespace(d: dict) -> SimpleNamespace:
+    ns = SimpleNamespace()
+    for key, value in d.items():
+        if isinstance(value, dict):
+            setattr(ns, key, _to_namespace(value))
+        else:
+            setattr(ns, key, value)
+    return ns
+
+
+_raw = _load_yaml()
+
+tmdb_config     = _to_namespace(_raw["tmdb"])
+pipeline_config = _to_namespace(_raw["pipeline"])
+
+tmdb_config.token = os.environ.get("TMDB_TOKEN")

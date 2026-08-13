@@ -1,0 +1,31 @@
+tmdb:
+  base_url:       https://api.themoviedb.org/3
+  delay:          0.26        # seconds between requests (stays under 40 req/sec)
+  timeout:        10
+  max_retries:    3
+
+  languages:
+    - en
+    - ta
+    - ko
+
+  min_votes:      10
+  min_popularity: 2.0
+  sort_by:        popularity.desc
+  max_pages:      500
+
+  use_exports:            false
+  export_min_popularity:  5.0
+  export_max_movies:      80000
+
+  max_cast:               3
+  min_overview_length:    30
+  include_posters:        true
+  poster_base_url:        https://image.tmdb.org/t/p/w500
+
+  output_path:       data/tmdb_movies.csv
+  checkpoint_every:   500
+  log_every:          10
+
+pipeline:
+  final_output: data/movies_final.csv

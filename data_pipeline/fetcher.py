@@ -28,8 +28,8 @@ class TMDBFetcher:
         try:
             res = requests.get(
                 f"{self.config.base_url}{endpoint}",
-                headers = self.headers,      # ← use Bearer header, this was missing
-                params  = params,             # ← plain params, no api_key needed
+                headers = self.headers,   
+                params  = params,             
                 timeout = self.config.timeout,
             )
 

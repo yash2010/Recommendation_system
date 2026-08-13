@@ -11,11 +11,15 @@ dependencies:
   - pyarrow>=15.0.0
   - pip
 
-- pip:
+pip:
    - torch>=2.0.0
    - sentence-transformers>3.0.0
+   - tokenizers>=0.15.0
    - fastapi>0.110.0
    - uvicorn[standard]>=0.29.0
    - pydantic>=2.0.0
    - ollama>=0.40.0
    - python-dotenv>=1.0.0
+   - pyyaml
+   - pytest>=8.0.0
+   - accelerate>=1.1.0
