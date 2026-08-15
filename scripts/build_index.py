@@ -50,6 +50,6 @@ print("Embeddings saved.")
 df.to_parquet(ARTIFACTS / "movies.parquet", index=False)
 
 print(f"\nSaved to {ARTIFACTS}/")
-print("  embeddings.npy  →", embeddings.nbytes // 1_000_000, "MB")
+print("  embeddings.npy  ->", embeddings.nbytes // 1_000_000, "MB")
 print("  movies.parquet")
 print("  model_name.txt")
