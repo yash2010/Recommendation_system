@@ -13,10 +13,18 @@ import json
 import argparse
 import ollama
 from pathlib import Path
-from expander_model.config import SYSTEM_PROMPT
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+SYSTEM_PROMPT = """You are helping build training data for a movie search system.
+Given a vague movie query, expand it into a rich, specific description that would help find relevant movies in a database of plot summaries.
+Rules:
+  - Add specific themes, motifs, and atmosphere words
+  - Include genre terminology that appears in plot summaries
+  - Mention narrative elements (unreliable narrator, nonlinear structure, etc.)
+  - Keep it to 3-4 sentences
+  - Output ONLY the expanded query, no preamble, no explanation
+  - Never mention specific movie titles""".strip()
 
 # Config
 QUERIES_PATH:str = "data/vague_queries.json"
