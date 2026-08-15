@@ -224,4 +224,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ⚠️**Work in Progress**
 
-This recommendation system is till under development and is currently under development and is not yet fully complete. At the moment, only the semantic search functionality has been implemented. Additional features, enhancements, and optimizations are planned and will be introduced in future updates.
+This project is under active development. Semantic search, query expansion, the feedback/history endpoints, and the web UI are functional. A custom bi-encoder retriever (retrievar_model/) is in progress to replace all-MiniLM-L6-v2. Additional features and optimizations are planned.
