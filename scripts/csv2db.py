@@ -1,7 +1,11 @@
+import sys
 import sqlite3
 import pandas as pd
 import numpy as np
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from database import init_db
 
 MOVIES_CSV = "data/tmdb_movies.csv"
 MOVIES_PARQUET = "data/movies_final.parquet"
@@ -76,26 +80,11 @@ def migrate():
         old_conn.close()
 
     else:
-            print("\n2. No interactions database found — creating empty tables...")
-            conn.executescript("""
-                CREATE TABLE IF NOT EXISTS users (
-                    user_id    TEXT PRIMARY KEY,
-                    created_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS interactions (
-                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id  TEXT    NOT NULL,
-                    movie_id INTEGER NOT NULL,
-                    title    TEXT    NOT NULL,
-                    action   TEXT    NOT NULL,
-                    rating   REAL,
-                    query    TEXT,
-                    timestamp TEXT   NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES users(user_id)
-                );
-            """)
-            
-    print("\n3. Verifying migration...")
+        print("No interactions database found — creating empty tables...")
+        # users/interactions schema is owned by database.py's init_db()
+        init_db()
+
+    print("\n2. Verifying migration...")
 
     movie_count  = conn.execute("SELECT COUNT(*) FROM movies").fetchone()[0]
     user_count   = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
