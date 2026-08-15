@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from model.config import get_tokenizer_class
+from expander_model.config import get_tokenizer_class
 
 DATA_PATH = Path("data/training_pairs.json")
 
