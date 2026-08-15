@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Movie Finder</title>
+  <title>Movie Match</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
@@ -37,6 +37,8 @@
       min-height: 100vh;
       padding: 0 24px 90px;
       -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
     }
 
     a { color: var(--accent); text-decoration: none; }
@@ -242,224 +244,222 @@
       background: var(--accent);
       color: #14120f;
       border: none;
-      border-radius: 999px;
+      border-radius: 4px;
       cursor: pointer;
-      transition: filter 0.15s, transform 0.1s;
-      white-space: nowrap;
+      transition: filter 0.15s;
     }
-    .input-row button:hover  { filter: brightness(1.08); }
-    .input-row button:active { transform: scale(0.985); }
+    .input-row button:hover { filter: brightness(1.08); }
 
-    .bottom-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .checkbox-label {
+    .checkbox-row {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .mode-hint {
+      padding: 12px 16px;
+      background: var(--bg);
+      border-radius: 4px;
       font-size: 13px;
       color: var(--fg2);
-      cursor: pointer;
-      user-select: none;
-      transition: opacity 0.2s, color 0.15s;
-    }
-    .checkbox-label:hover { color: var(--fg); }
-    .checkbox-label input[type="checkbox"] {
-      width: 15px; height: 15px;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-    .mode-hint {
-      font-family: var(--mono);
-      font-size: 11px;
-      line-height: 1.6;
-      color: var(--fg3);
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid var(--line-soft);
+      margin-top: 8px;
+      line-height: 1.5;
     }
 
-    /* ── Results ─────────────────────────────────────────────────────── */
-    .results-wrap { max-width: 760px; margin: 0 auto; }
+    /* ── Results ──────────────────────────────────────────────────────── */
+    .results-container {
+      max-width: 760px;
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    .state-msg, .error-msg {
+      text-align: center;
+      padding: 60px 24px;
+      font-size: 16px;
+      color: var(--fg2);
+    }
+    .state-msg .icon { font-size: 48px; margin-bottom: 12px; }
+    .error-msg { color: var(--error); }
 
     .expanded-note {
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.6;
-      color: var(--accent);
-      margin-bottom: 18px;
       padding: 12px 16px;
-      background: var(--chip);
-      border: 1px solid var(--line);
-      border-left: 2px solid var(--accent);
-      border-radius: 0 4px 4px 0;
+      background: var(--error-bg);
+      border-left: 3px solid var(--error);
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--error);
+      margin-bottom: 20px;
     }
 
     .movie-card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 12px;
-      transition: border-color 0.15s;
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    .movie-card:hover { border-color: var(--fg3); }
-
     .movie-header {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 8px;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
     .movie-title {
-      font-family: var(--serif);
-      font-weight: 400;
-      font-size: 26px;
-      line-height: 1.15;
-      letter-spacing: -0.01em;
-      color: var(--fg);
+      font-size: 18px;
+      font-weight: 500;
     }
+    .movie-title span { color: var(--fg3); }
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
       font-family: var(--mono);
       font-size: 11px;
-      letter-spacing: 0.06em;
-      padding: 5px 11px;
-      border-radius: 3px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border-radius: 999px;
       white-space: nowrap;
-      flex-shrink: 0;
     }
-    .badge-score { background: var(--chip); color: var(--fg2); border: 1px solid var(--line); }
-    .badge-exact { background: var(--accent); color: #14120f; }
+    .badge-exact { background: #1a2b1f; color: #7fe4a0; }
+    .badge-score { background: #2b1f1a; color: #e0a45e; }
 
     .movie-meta {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--fg3);
-      margin-bottom: 14px;
       display: flex;
-      flex-wrap: wrap;
       gap: 16px;
-    }
-    .movie-meta span { margin-right: 0; }
-    .movie-plot {
-      font-size: 15px;
-      line-height: 1.65;
+      font-size: 14px;
       color: var(--fg2);
-      margin-bottom: 18px;
-      max-width: 66ch;
-      text-wrap: pretty;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .movie-plot {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--fg2);
+      margin-bottom: 16px;
     }
 
     .rating-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 12px;
       flex-wrap: wrap;
-      padding-top: 16px;
-      border-top: 1px solid var(--line-soft);
     }
     .rating-label {
       font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.14em;
+      font-size: 11px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--fg3);
-      margin-right: 6px;
     }
     .star-btn {
-      background: transparent;
-      border: 1px solid var(--line);
-      border-radius: 3px;
-      padding: 5px 9px;
-      font-size: 12px;
-      line-height: 1.2;
+      padding: 4px;
+      background: none;
+      border: none;
       cursor: pointer;
-      color: var(--fg2);
-      transition: border-color 0.12s, background 0.12s, transform 0.1s;
+      font-size: 18px;
+      opacity: 0.5;
+      transition: opacity 0.15s, transform 0.15s;
     }
-    .star-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-    .star-btn.rated { background: var(--accent); border-color: var(--accent); }
+    .star-btn:hover { opacity: 0.8; transform: scale(1.1); }
+    .star-btn.rated { opacity: 1; }
     .rated-thanks {
       font-family: var(--mono);
       font-size: 11px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--accent-2);
-      margin-left: 8px;
+      color: #7fe4a0;
       display: none;
     }
 
-    .state-msg {
-      text-align: center;
-      padding: 72px 20px;
-      color: var(--fg3);
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border: 1px dashed var(--line);
-      border-radius: var(--radius);
-    }
-    .state-msg .icon { font-size: 30px; margin-bottom: 14px; filter: grayscale(0.35); }
-    .error-msg {
-      background: var(--error-bg);
-      border: 1px solid #4a2c25;
-      color: var(--error);
-      padding: 15px 18px;
-      border-radius: 4px;
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
     .timing {
-      text-align: right;
+      text-align: center;
       font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-size: 11px;
       color: var(--fg3);
-      margin-top: 12px;
+      margin-top: 32px;
     }
 
-    @media (max-width: 560px) {
-      body { padding: 0 16px 60px; }
-      header h1 { font-size: 28px; }
-      .movie-title { font-size: 22px; }
-      .input-row { flex-direction: column; }
-      .mode-row  { flex-direction: column; }
+    /* ── Main content wrapper ─────────────────────────────────────────── */
+    #mainApp {
+      flex: 1;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 60px;
+      padding: 40px 0;
+      border-top: 1px solid var(--line);
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--fg3);
+    }
+
+    footer p {
+      margin-bottom: 12px;
+    }
+
+    footer a {
+      margin: 0 12px;
+      display: inline-block;
+      transition: color 0.15s;
+    }
+
+    footer a:hover {
+      color: var(--fg2);
+    }
+
+    .footer-links {
+      margin: 16px 0;
+    }
+
+    .copyright {
+      margin-top: 16px;
+      font-size: 10px;
+      color: var(--fg3);
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Movie Finder</h1>
-    <p>Semantic search &middot; transformer index</p>
-  </header>
+  <!-- ── Login Screen ─────────────────────────────────────────────────────────── -->
+  <div id="loginScreen" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+    <header>
+      <h1>Movie Match</h1>
+      <p>Match with your favorite film 💓</p>
+    </header>
 
-  <!-- LOGIN -->
-  <div id="loginScreen">
     <div class="login-card">
       <h2>Welcome</h2>
-      <p>Enter your name and the access code to start finding movies.</p>
+      <p>Sign in with your name and access code to search for movie recommendations.</p>
+
       <div class="login-fields">
-        <input type="text"     id="loginName" placeholder="Your name"   autocomplete="off" />
-        <input type="password" id="loginCode" placeholder="Access code" autocomplete="off" />
-        <button onclick="login()">Continue &rarr;</button>
+        <input type="text" id="loginName" placeholder="Your name" />
+        <input type="password" id="loginCode" placeholder="Access code" />
+        <button onclick="login()">Sign In</button>
+        <div class="login-error" id="loginError"></div>
       </div>
-      <p class="login-error" id="loginError"></p>
     </div>
   </div>
 
-  <!-- MAIN APP -->
-  <div id="mainApp" style="display:none">
-
+  <!-- ── Main App ──────────────────────────────────────────────────────────── -->
+  <div id="mainApp" style="display: none;">
     <div class="user-bar">
-      <span id="userGreeting"></span>
-      <button class="logout-btn" onclick="logout()">Leave</button>
+      <div id="userGreeting">👋 Hi</div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <div class="search-card">
@@ -467,62 +467,68 @@
         <label class="mode-btn">
           <input type="radio" name="searchMode" value="title" checked onchange="onModeChange()" />
           <span class="radio-dot"></span>
-          Search by title
+          By Title
         </label>
         <label class="mode-btn">
-          <input type="radio" name="searchMode" value="semantic" onchange="onModeChange()" />
+          <input type="radio" name="searchMode" value="description" onchange="onModeChange()" />
           <span class="radio-dot"></span>
-          Describe a movie
+          By Vibe
         </label>
       </div>
 
       <div class="input-row">
-        <input type="text" id="query" placeholder="e.g. Inception, The Dark Knight..." autocomplete="off" />
-        <button onclick="search()">Find</button>
+        <input type="text" id="query" placeholder="e.g. Inception, The Dark Knight..." />
+        <button onclick="search()">Search</button>
       </div>
 
-      <div class="bottom-row">
-        <label class="checkbox-label" id="expandLabel" style="opacity:0.3; pointer-events:none;">
-          <input type="checkbox" id="expandQuery" checked />
-          Expand vague queries with AI
-        </label>
-      </div>
+      <label class="checkbox-row" id="expandLabel">
+        <input type="checkbox" id="expandQuery" />
+        <span>Help me expand the search</span>
+      </label>
 
-      <p class="mode-hint" id="modeHint">
+      <div class="mode-hint" id="modeHint">
         🎬 Type a movie title — we'll find it and recommend similar movies.
-      </p>
-    </div>
-
-    <div class="results-wrap" id="results">
-      <div class="state-msg">
-        <div class="icon">🍿</div>
-        <div>Search for a movie to get started</div>
       </div>
     </div>
 
+    <div class="results-container">
+      <div id="results">
+        <div class="state-msg">
+          <div class="icon">🍿</div>
+          <div>Search for a movie to get started</div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <footer>
+    <p>Movie Match</p>
+    <div class="footer-links">
+      <a href="/static/Privacy.html" target="_blank">Privacy Policy</a>
+      <a href="/static/Terms.html" target="_blank">Terms of Service</a>
+    </div>
+    <div class="copyright">
+      © 2026 Movie Match. All rights reserved. | Movie data sourced from external APIs.
+    </div>
+  </footer>
+
   <script>
-    // ── Config ────────────────────────────────────────────────────────────────
-    // If using ngrok, set this to your ngrok URL:
-    // const API = "https://abc123.ngrok-free.app";
-    const API = "";
+    const API = "http://localhost:8000";
+    let currentUser  = null;
+    let accessCode   = null;
+    let currentResults = [];
 
-    // ── State ─────────────────────────────────────────────────────────────────
-    let currentUser    = null;
-    let accessCode     = null;
-    let currentResults = [];   // stores last search results — avoids JS string escaping bugs
-
-    // ── Auth ──────────────────────────────────────────────────────────────────
+    // ── Login ──────────────────────────────────────────────────────────────────
     function login() {
       const name = document.getElementById("loginName").value.trim();
       const code = document.getElementById("loginCode").value.trim();
       const err  = document.getElementById("loginError");
 
-      if (!name) { err.textContent = "Please enter your name."; return; }
-      if (!code)  { err.textContent = "Please enter the access code."; return; }
-
-      err.textContent = "Checking...";
+      if (!name || !code) {
+        err.textContent = "Please enter both name and access code.";
+        return;
+      }
 
       fetch(`${API}/health`, {
         headers: { "x-access-code": code }
@@ -628,7 +634,7 @@
         }
 
         const data = await res.json();
-        currentResults = data.results || [];   // store globally — safe reference for rate()
+        currentResults = data.results || [];
         renderResults(data, query);
 
       } catch (e) {
@@ -660,13 +666,12 @@
         for (var r = 1; r <= 5; r++) {
           var starEmoji = "";
           for (var s = 0; s < r; s++) starEmoji += "⭐";
-          // Use rank as reference — avoids putting title/special chars in onclick
           stars += '<button class="star-btn" id="star-' + m.rank + '-' + r + '" onclick="rate(' + m.rank + ',' + r + ')">' + starEmoji + '</button>';
         }
 
         return '<div class="movie-card">' +
           '<div class="movie-header">' +
-            '<div class="movie-title">' + m.rank + '. ' + m.title + ' <span style="font-weight:400;color:var(--muted)">(' + m.year + ')</span></div>' +
+            '<div class="movie-title">' + m.rank + '. ' + m.title + ' <span style="font-weight:400;color:var(--fg3)">(' + m.year + ')</span></div>' +
             '<span class="badge ' + badgeClass + '">' + badgeIcon + ' ' + scoreText + '</span>' +
           '</div>' +
           '<div class="movie-meta">' +
@@ -687,7 +692,6 @@
     }
 
     // ── Rate ──────────────────────────────────────────────────────────────────
-    // Uses rank to look up movie from currentResults — no special char issues
     async function rate(rank, rating) {
       var movie = null;
       for (var i = 0; i < currentResults.length; i++) {
@@ -717,7 +721,6 @@
         });
 
         if (res.ok) {
-          // Highlight selected stars
           for (var r = 1; r <= 5; r++) {
             var btn = document.getElementById("star-" + rank + "-" + r);
             if (btn) {
@@ -728,7 +731,6 @@
               }
             }
           }
-          // Show thanks message
           var thanks = document.getElementById("thanks-" + rank);
           if (thanks) {
             thanks.style.display = "inline";
