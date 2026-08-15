@@ -11,7 +11,7 @@ from recommender import Recommender
 from expanders.base import BaseExpander
 from expanders.ollama_expander import OllamaExpander
 from expanders.local_expander import LocalExpander
-from model.config import api_config, database_config, expander_config
+from expander_model.config import api_config, database_config, expander_config
 
 ACCESS_CODE = os.environ.get(api_config.access_code_env_var)
 
@@ -76,7 +76,7 @@ class RecommendRequest(BaseModel):
     top_k:int = Field(5, ge=1, le=20)
     genre_filter:str|None = Field(None, description="Filter by genre e.g. 'drama'")
     expand_query:bool = Field(True,  description="Use LLM to expand vague queries")
-    search_mode:str = Field("auto", description = "semantic' - find by description | 'title' - find by movie name")
+    search_mode:str = Field("semantic", description = "'semantic' - find by description | 'title' - find by movie name")
     user_id: str|None = Field(None)
 
 class MovieResult(BaseModel):
