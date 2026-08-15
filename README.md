@@ -291,6 +291,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [FastAPI](https://fastapi.tiangolo.com/) for the web framework
 - [Ollama](https://ollama.com/) for local LLM inference
 - [The Movie Database (TMDB)](https://www.themoviedb.org/) for movie data
+- [Figma](https://www.figma.com/) for designing the web UI
 - [Claude design](https://claude.ai/design) for building the web UI
 
 ## 🗺️ Planned Features
