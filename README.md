@@ -6,6 +6,7 @@ A movie recommendation system that finds films based on natural language descrip
 
 ## ✨ Features
 
+- **Title search** - finds movies by title 
 - **Semantic search** - finds movies by meaning, not just keywords
 - **Query expansion** - enriches vague queries via Ollama or a from-scratch trained transformer
 - **Custom transformer** - seq2seq query expander (encoder/decoder + attention) built from scratch in PyTorch, with a choice of tokenizers (word-level, BPE via HuggingFace, or BPE from scratch)
@@ -14,8 +15,7 @@ A movie recommendation system that finds films based on natural language descrip
 - **User feedback loop** - logs clicks/ratings/watches per user and exposes history/stats for future personalization
 - **REST API** - FastAPI with interactive Swagger docs, optional access-code auth
 - **Web UI** - a static front end (`static/index.html`) served directly by the API
-- **Similar movies** - find movies similar to any movie by ID
-- **Title & genre search** - look movies up by title or filter results by genre
+- **Similar movies** - find movies similar to any movie
 
 ---
 
