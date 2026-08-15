@@ -291,6 +291,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [FastAPI](https://fastapi.tiangolo.com/) for the web framework
 - [Ollama](https://ollama.com/) for local LLM inference
 - [The Movie Database (TMDB)](https://www.themoviedb.org/) for movie data
+- [Claude Code](https://claude.com/claude-code) for implementation help, including the web UI
 
 ## 🗺️ Planned Features
 
@@ -299,5 +300,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Collaborative filtering** - use logged clicks/ratings/watches (`/feedback`, `/history`) to power personalized recommendations, instead of just storing them
 - **Custom retriever transformer** - a bi-encoder built from scratch to replace `all-MiniLM-L6-v2` as the embedding model
 - **UI filters** - language and genre filter controls in the web UI (genre filtering already exists in the API, just not exposed in the frontend)
-- **Fine-tuned FLAN-T5 expander** - `expanders/finetuned_expander.py` and `scripts/finetune_flan_t5.py` exist, but no model has been trained yet and it isn't wired into `config/api.yaml`'s expander-mode switch
+- **Fine-tuned FLAN-T5 expander** - `expanders/finetuned_expander.py` exists, but no model has been trained yet and it isn't wired into `config/api.yaml`'s expander-mode switch
 
