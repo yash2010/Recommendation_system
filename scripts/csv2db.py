@@ -103,7 +103,7 @@ def migrate():
         print(f"     {row[0]} ({row[1]}) — {row[2]}")
 
     conn.close()
-    print(f"\nMigration complete → {NEW_DB}")
+    print(f"\nMigration complete -> {NEW_DB}")
 
 if __name__ == "__main__":
     migrate()
