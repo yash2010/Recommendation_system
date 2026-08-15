@@ -3,16 +3,16 @@ tokenizer: word_level
 
 tokenizers:
   word_level:
-    module: model.tokenizers.word_level
+    module: expander_model.tokenizers.word_level
     class:  Tokenizer
 
   bpe_library:
-    module: model.tokenizers.bpe_library
+    module: expander_model.tokenizers.bpe_library
     class:  Tokenizer
     min_frequency: 3
 
   bpe_scratch:
-    module: model.tokenizers.bpe_scratch
+    module: expander_model.tokenizers.bpe_scratch
     class:  Tokenizer
     min_frequency: 3
 
@@ -54,7 +54,7 @@ train:
   early_stopping_patience: 10   # stop if val_loss hasn't improved in this many epochs
 
 
-#  Inference used both by train.py's post-training test-generate and api
+#  Inference used both by expander_train.py's post-training test-generate and api
 inference:
   max_new_tokens: 128   # max. token to generate
   temperature:    0.7    # creativity: lower = more focused, higher = more creative

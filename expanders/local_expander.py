@@ -2,8 +2,8 @@ import json
 import torch
 from pathlib import Path
 from expanders.base import BaseExpander
-from model.model import QueryExpander
-from model.config import get_tokenizer_class, RUNS_DIR
+from expander_model.expander_model import QueryExpander
+from expander_model.config import get_tokenizer_class, RUNS_DIR
 
 
 class LocalExpander(BaseExpander):
@@ -54,7 +54,7 @@ class LocalExpander(BaseExpander):
         if not Path(model_path).exists():
             raise FileNotFoundError(
                 f"No trained model found at {model_path}. "
-                "Run train.py first."
+                "Run expander_train.py first."
             )
 
         tokenizer_name = self._read_tokenizer_name(run_dir)
