@@ -3,7 +3,7 @@
 import time
 import pandas as pd
 from pathlib import Path
-from data_pipeline.config import PipelineConfig, LANGUAGE_NAMES
+from data_pipeline.config import pipeline_config, LANGUAGE_NAMES
 from data_pipeline.fetcher import TMDBFetcher
 from data_pipeline.processor import TMDBProcessor
 from data_pipeline.exporter import DataExporter
@@ -11,8 +11,8 @@ from data_pipeline.exporter import DataExporter
 
 class TMDBPipeline:
 
-    def __init__(self, config: PipelineConfig = None):
-        self.config    = config or PipelineConfig()
+    def __init__(self, config=None):
+        self.config    = config or pipeline_config
         self.fetcher   = TMDBFetcher(self.config.tmdb)
         self.processor = TMDBProcessor(self.config.tmdb)
         self.exporter  = DataExporter(self.config)
@@ -83,8 +83,9 @@ class TMDBPipeline:
                     new_for_language += 1
 
             if page % cfg.log_every == 0:
+                skipped_msg = f", {skipped_already_have} skipped (already have)" if skipped_already_have > 0 else ""
                 print(f"   Page {page}/{cfg.max_pages} — "
-                      f"{new_for_language} new, {skipped_already_have} skipped (already have)")
+                      f"{new_for_language} new{skipped_msg}")
 
             if len(movies) > 0 and len(movies) % cfg.checkpoint_every < 20:
                 self.exporter.save_checkpoint(movies, cfg.output_path)

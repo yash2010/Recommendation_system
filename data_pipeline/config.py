@@ -29,4 +29,11 @@ _raw = _load_yaml()
 tmdb_config     = _to_namespace(_raw["tmdb"])
 pipeline_config = _to_namespace(_raw["pipeline"])
 
-tmdb_config.token = os.environ.get("TMDB_TOKEN")
+tmdb_config.token    = os.environ.get("TMDB_TOKEN")
+pipeline_config.tmdb = tmdb_config
+
+LANGUAGE_NAMES = {
+    "en": "English",
+    "ta": "Tamil",
+    "ko": "Korean",
+}

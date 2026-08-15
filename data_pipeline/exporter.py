@@ -1,12 +1,12 @@
 import pandas as pd
 from pathlib import Path
-from data_pipeline.config import PipelineConfig
+from data_pipeline.config import pipeline_config
 
 
 class DataExporter:
 
-    def __init__(self, config: PipelineConfig = None):
-        self.config = config or PipelineConfig()
+    def __init__(self, config=None):
+        self.config = config or pipeline_config
 
     def save_checkpoint(self, movies: list, path: str = None) -> None:
         

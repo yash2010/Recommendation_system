@@ -3,13 +3,13 @@ import json
 import time
 import requests
 from datetime import datetime, timedelta
-from data_pipeline.config import TMDBConfig
+from data_pipeline.config import tmdb_config
 
 
 class TMDBFetcher:
 
-    def __init__(self, config: TMDBConfig = None):
-        self.config  = config or TMDBConfig()
+    def __init__(self, config=None):
+        self.config  = config or tmdb_config
         self.headers = {
             "Authorization": f"Bearer {self.config.token}",
             "accept":        "application/json",

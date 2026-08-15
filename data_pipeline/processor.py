@@ -1,9 +1,9 @@
-from data_pipeline.config import TMDBConfig
+from data_pipeline.config import tmdb_config
 
 class TMDBProcessor:
 
-    def __init__(self, config: TMDBConfig = None):
-        self.config = config or TMDBConfig()
+    def __init__(self, config=None):
+        self.config = config or tmdb_config
 
     def extract_director(self, credits: dict) -> str:
         if not credits:
