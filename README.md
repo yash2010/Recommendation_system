@@ -291,16 +291,6 @@ Movies and queries are both encoded as vectors with `all-MiniLM-L6-v2`. Cosine s
 
 ---
 
-## 🧪 Tests
-
-```bash
-pytest
-```
-
-Covers the API, database layer, and custom transformer components (attention, blocks, encoder, decoder, dataset, tokenizer).
-
----
-
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
