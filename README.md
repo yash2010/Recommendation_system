@@ -219,6 +219,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [FastAPI](https://fastapi.tiangolo.com/) for the web framework
 - [Ollama](https://ollama.com/) for local LLM inference
 - [Kaggle](https://www.kaggle.com/) for movie dataset
+- [The Movie Database (TMDB)](https://www.themoviedb.org/) for movie data
 
 ## Note
 
