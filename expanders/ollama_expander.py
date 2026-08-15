@@ -1,6 +1,6 @@
 import ollama
 from expanders.base import BaseExpander
-from model.config import SYSTEM_PROMPT
+from expander_model.config import SYSTEM_PROMPT
 
 
 class OllamaExpander(BaseExpander):

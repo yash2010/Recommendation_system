@@ -1,3 +1,4 @@
+import sqlite3
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -24,15 +25,26 @@ class Moviematch:
 
 class Recommender:
 
-    def __init__(self, artifacts_dir:str = "artifacts"):
+    def __init__(self, artifacts_dir:str = "artifacts", db_path :str = "data/movies.db"):
         artifacts_dir = Path(artifacts_dir)
 
         print("Loading artifacts...")
-        self.movies = pd.read_parquet(artifacts_dir / "movies.parquet")
+
         self.embeddings = np.load(artifacts_dir / "embeddings.npy")
+
         model_name = (artifacts_dir / "model_name.txt").read_text().strip()
         self.model = SentenceTransformer(model_name)
-        print(f"Ready. {len(self.movies)} movies loaded.")
+
+        if Path(db_path).exists():
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            self.movies = pd.read_sql_query("SELECT * FROM movies", conn)
+            self.movies = pd.read_sql_query("SELECT * FROM movies", conn)
+            conn.close()
+            print(f"Loaded {len(self.movies)} movies from {db_path}")
+        else:
+            self.movies = pd.read_parquet(artifacts_dir / "movies.parquet")
+            print(f"Loaded {len(self.movies)} movies from {artifacts_dir / 'movies.parquet'}")
 
     def search(self, query:str, top_k: int = 10, genre_filter: str = None) -> list[Moviematch]:
         query_embed = self.model.encode([query], normalize_embeddings=True, convert_to_numpy=True)[0]

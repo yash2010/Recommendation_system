@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from model.attention import MultiHeadAttention
-from model.config import model_config
+from expander_model.attention import MultiHeadAttention
+from expander_model.config import model_config
 
 class FeedForward(nn.Module):
 
@@ -80,7 +80,7 @@ class DecoderBlock(nn.Module):
         # key and value comes from encoder
         residual = x
         x = self.norm2(x)
-        attn_out, _ = self.masked_attn(x, encoder_out, encoder_out, src_mask)
+        attn_out, _ = self.cross_attn(x, encoder_out, encoder_out, src_mask)
         x = residual + self.dropout(attn_out)
 
         # adds non-linearity

@@ -1,9 +1,9 @@
 import torch
 import math
 import torch.nn as nn
-from model.blocks import DecoderBlock
-from model.encoder import PositionalEncoding
-from model.config import model_config
+from expander_model.blocks import DecoderBlock
+from expander_model.encoder import PositionalEncoding
+from expander_model.config import model_config
 
 class Decoder(nn.Module):
 

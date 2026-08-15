@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from model.encoder import Encoder
-from model.decoder import Decoder
-from model.tokenizer import Tokenizer
-from model.config import model_config, inference_config
+from expander_model.encoder import Encoder
+from expander_model.decoder import Decoder
+from expander_model.tokenizers.bpe_library import Tokenizer
+from expander_model.config import model_config, inference_config
 
 class QueryExpander(nn.Module):
 
@@ -41,9 +41,11 @@ class QueryExpander(nn.Module):
 
         self.eval()
 
+        device = next(self.parameters()).device
+
         # Encode src
         src_ids = tokenizer.encode(query, max_len=model_config.max_src_len, add_sos=False, add_eos=False)
-        src = torch.tensor(src_ids, dtype=torch.long).unsqueeze(0)
+        src = torch.tensor(src_ids, dtype=torch.long).unsqueeze(0).to(device)
         encoder_out, src_mask = self.encoder(src)
 
         # Decode
@@ -51,7 +53,7 @@ class QueryExpander(nn.Module):
         for _ in range(max_new_tokens):
             
             # build current tar_seq
-            tar = torch.tensor(generated, dtype=torch.long).unsqueeze(0)
+            tar = torch.tensor(generated, dtype=torch.long).unsqueeze(0).to(device)
             
             # get logits for all positions
             logits = self.decoder(tar, encoder_out, src_mask)

@@ -1,12 +1,12 @@
-import math 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.config import model_config
+from expander_model.config import model_config
 
 class MultiHeadAttention(nn.Module):
 
-    def __init__(self, embed_dim:int = None, num_heads: int = None, droput: float = None):
+    def __init__(self):
         super().__init__()
 
         self.embed_dim = model_config.embed_dim

@@ -1,0 +1,64 @@
+# tokenizer 
+tokenizer: word_level
+
+tokenizers:
+  word_level:
+    module: expander_model.tokenizers.word_level
+    class:  Tokenizer
+
+  bpe_library:
+    module: expander_model.tokenizers.bpe_library
+    class:  Tokenizer
+    min_frequency: 3
+
+  bpe_scratch:
+    module: expander_model.tokenizers.bpe_scratch
+    class:  Tokenizer
+    min_frequency: 3
+
+
+#  Model architecture 
+model:
+  vocab_size:   1500  # no. of unique tokens  
+  embed_dim:    128   # size of every token vector
+  num_heads:    4     # no. of attention heads
+  num_layers:   2     # no. of transformer blocks encoder + decoder
+  ff_dim:       256   # hidden size of feedforward network (2x the embedded dimemsion)
+  dropout:      0.15   
+
+  max_src_len:  16     # min. output tokens
+  max_tar_len:  128   # max. output tokens
+
+  pad_token_id: 0   # padding - fills the short queries to the same length 
+  sos_token_id: 1   # start of sentence
+  eos_token_id: 2   # end of sentence
+  unk_token_id: 3   # unknown token for the words which isn't included in the token
+
+
+#  Training hyperparameters 
+train:
+  data_path:      data/training_pairs.json
+  train_split:    0.9
+
+  epochs:         100
+  batch_size:     8
+  learning_rate:  0.0003
+  warmup_steps:   100
+
+  weight_decay:   0.01
+  grad_clip:      1.0
+
+  save_every:     10
+  log_every:      5
+
+  early_stopping_patience: 10   # stop if val_loss hasn't improved in this many epochs
+
+
+#  Inference used both by expander_train.py's post-training test-generate and api
+inference:
+  max_new_tokens: 128   # max. token to generate
+  temperature:    0.7    # creativity: lower = more focused, higher = more creative
+  top_k:          50    # samples from top 50 most similar/likely tokens
+
+# Saved runs
+runs_dir: artifacts/expander/runs

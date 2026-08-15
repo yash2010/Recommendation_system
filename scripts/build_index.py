@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
-CSV_PATH = "data/movies_clean.csv"
+CSV_PATH = "data/tmdb_movies.csv"
 ARTIFACTS = Path("artifacts")
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 BATCH_SIZE = 128
@@ -53,4 +53,3 @@ print(f"\nSaved to {ARTIFACTS}/")
 print("  embeddings.npy  →", embeddings.nbytes // 1_000_000, "MB")
 print("  movies.parquet")
 print("  model_name.txt")
-print("\nDone. Run recommender.py next.")

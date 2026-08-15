@@ -2,7 +2,7 @@ import re
 import json
 from pathlib import Path
 from collections import Counter
-from model.config import model_config
+from expander_model.config import model_config
 
 class Tokenizer():
 
@@ -107,5 +107,3 @@ class Tokenizer():
     
     def __len__(self) -> int:
         return self.vocab_size
-
-
