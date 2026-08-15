@@ -7,7 +7,7 @@ A movie recommendation system that finds films based on natural language descrip
 ## ✨ Features
 
 - **Semantic search** - finds movies by meaning, not just keywords
-- **Query expansion** - enriches vague queries via Ollama, a from-scratch trained transformer, or a fine-tuned FLAN-T5
+- **Query expansion** - enriches vague queries via Ollama or a from-scratch trained transformer
 - **Custom transformer** - seq2seq query expander (encoder/decoder + attention) built from scratch in PyTorch, with a choice of tokenizers (word-level, BPE via HuggingFace, or BPE from scratch)
 - **TMDB-backed data pipeline** - fetches, processes, and checkpoints movie data from The Movie Database API across multiple languages
 - **SQLite-backed storage** - movies, users, and interactions all live in one database
@@ -33,7 +33,7 @@ artifacts/embeddings.npy (all-MiniLM-L6-v2)      feedback / history endpoints
 
 User types a description
         │
-Query Expansion (Ollama / custom transformer / fine-tuned FLAN-T5)
+Query Expansion (Ollama / custom transformer)
   "a dark thriller" -> "A psychologically intense thriller
                         featuring an unreliable narrator..."
         │
@@ -57,13 +57,11 @@ expander_train.py        Trains the from-scratch query-expander transformer
 config/
   api.yaml               Server, database, and expander-mode settings
   expander_train.yaml    Custom transformer architecture + training hyperparams
-  finetune.yaml          FLAN-T5 fine-tuning config
 
 data_pipeline/           TMDB fetch -> process -> export pipeline
 expander_model/          Custom transformer (attention, encoder/decoder, tokenizers)
-expanders/               Pluggable query expanders (Ollama, local, fine-tuned) behind a common base class
+expanders/               Pluggable query expanders (Ollama, local) behind a common base class
 scripts/                 One-off / operational scripts (fetch, migrate, build index, train, inspect)
-retrievar_model/         WIP - custom bi-encoder retriever intended to replace all-MiniLM-L6-v2
 static/                  Web UI (index.html) + Privacy/Terms pages
 ```
 
@@ -236,7 +234,6 @@ All runtime settings live in `config/*.yaml` (loaded via `expander_model/config.
 
 - **`config/api.yaml`** - CORS origins, DB path, and `expander.mode` (`ollama` or `local`)
 - **`config/expander_train.yaml`** - custom transformer architecture, tokenizer choice, and training hyperparameters
-- **`config/finetune.yaml`** - FLAN-T5 fine-tuning config (base model, data split, epochs)
 - **`data_pipeline/config.yaml`** - TMDB fetch settings (languages, rate limiting, min votes/popularity, checkpointing)
 
 ### Switch expander mode
@@ -261,14 +258,6 @@ python expander_train.py
 ```
 
 Runs are saved under `artifacts/expander/runs/<timestamp>_...`; `LocalExpander` auto-selects the run with the lowest validation loss.
-
-### Fine-tune FLAN-T5 (alternative expander)
-
-```bash
-python scripts/finetune_flan_t5.py
-```
-
-Saves to `artifacts/expander_finetuned/best_model`, loadable via `expanders/finetuned_expander.py`.
 
 ---
 
@@ -303,8 +292,12 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Ollama](https://ollama.com/) for local LLM inference
 - [The Movie Database (TMDB)](https://www.themoviedb.org/) for movie data
 
-## Note
+## 🗺️ Planned Features
 
-⚠️ **Work in Progress**
+⚠️ **Work in Progress** - this project is under active development.
 
-This project is under active development. Semantic search, query expansion, the feedback/history endpoints, and the web UI are functional. A custom bi-encoder retriever (`retrievar_model/`) is in progress to replace `all-MiniLM-L6-v2`. Additional features and optimizations are planned.
+- **Collaborative filtering** - use logged clicks/ratings/watches (`/feedback`, `/history`) to power personalized recommendations, instead of just storing them
+- **Custom retriever transformer** - a bi-encoder built from scratch to replace `all-MiniLM-L6-v2` as the embedding model
+- **UI filters** - language and genre filter controls in the web UI (genre filtering already exists in the API, just not exposed in the frontend)
+- **Fine-tuned FLAN-T5 expander** - `expanders/finetuned_expander.py` and `scripts/finetune_flan_t5.py` exist, but no model has been trained yet and it isn't wired into `config/api.yaml`'s expander-mode switch
+
