@@ -4,10 +4,9 @@ import torch
 from datetime import datetime
 import torch.nn as nn
 from pathlib import Path
-from model.model import QueryExpander
-from model.dataset import build_dataloaders
-from model.tokenizers.bpe_library import Tokenizer
-from model.config import (train_config, model_config, tokenizer_config, get_tokenizer_class, RUNS_DIR)
+from expander_model.expander_model import QueryExpander
+from expander_model.dataset import build_dataloaders
+from expander_model.config import (train_config, model_config, tokenizer_config, get_tokenizer_class, RUNS_DIR)
 
 num_cores = os.cpu_count()
 torch.set_num_threads(max(1, num_cores - 1))
