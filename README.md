@@ -65,7 +65,6 @@ expanders/               Pluggable query expanders (Ollama, local, fine-tuned) b
 scripts/                 One-off / operational scripts (fetch, migrate, build index, train, inspect)
 retrievar_model/         WIP - custom bi-encoder retriever intended to replace all-MiniLM-L6-v2
 static/                  Web UI (index.html) + Privacy/Terms pages
-tests/                   pytest suite (API, DB, model components)
 ```
 
 ---
