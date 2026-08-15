@@ -33,14 +33,18 @@ artifacts/embeddings.npy (all-MiniLM-L6-v2)      feedback / history endpoints
 
 User types a description
         │
+        ▼
 Query Expansion (Ollama / custom transformer)
   "a dark thriller" -> "A psychologically intense thriller
                         featuring an unreliable narrator..."
         │
+        ▼
 Sentence Transformer Embedding (all-MiniLM-L6-v2)
         │
+        ▼
 Cosine Similarity Search over artifacts/embeddings.npy
         │
+        ▼
 Top-k Results via REST API / Web UI
 ```
 
