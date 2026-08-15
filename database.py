@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-DB_PATH = os.environ.get("DB_PATH", "data/moviesdat.db")
+DB_PATH = os.environ.get("DB_PATH", "data/movies.db")
 
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
