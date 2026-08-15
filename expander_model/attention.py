@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.config import model_config
+from expander_model.config import model_config
 
 class MultiHeadAttention(nn.Module):
 

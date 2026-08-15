@@ -1,7 +1,7 @@
 import json
 import torch 
 from torch.utils.data import Dataset, DataLoader
-from model.config import model_config, train_config
+from expander_model.config import model_config, train_config
 
 class MovieQueryDataset(Dataset):
 

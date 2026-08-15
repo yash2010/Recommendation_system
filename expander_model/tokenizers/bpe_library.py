@@ -2,7 +2,7 @@ import tempfile
 import json
 from pathlib import Path
 from tokenizers import ByteLevelBPETokenizer
-from model.config import model_config, tokenizer_config, SPECIAL_TOKENS, SPECIAL_TOKEN_IDS
+from expander_model.config import model_config, tokenizer_config, SPECIAL_TOKENS, SPECIAL_TOKEN_IDS
 
 class Tokenizer():
 
@@ -36,8 +36,8 @@ class Tokenizer():
             if actual_id != expected_id:
                 raise RuntimeError(
                     f"Special token {token} got id {actual_id} from the tokenizer, "
-                    f"but train.yaml's model config expects {expected_id}. "
-                    f"Check pad/sos/eos/unk_token_id in config/train.yaml."
+                    f"but expander_train.yaml's model config expects {expected_id}. "
+                    f"Check pad/sos/eos/unk_token_id in config/expander_train.yaml."
                 )
 
         self.vocab_size = self._tok.get_vocab_size()

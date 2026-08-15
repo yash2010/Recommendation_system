@@ -1,8 +1,8 @@
 import torch
 import math
 import torch.nn as nn
-from model.blocks import EncoderBlock
-from model.blocks import model_config
+from expander_model.blocks import EncoderBlock
+from expander_model.blocks import model_config
 
 class PositionalEncoding(nn.Module):
 

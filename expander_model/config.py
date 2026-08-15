@@ -3,7 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 PROJECT_ROOT = Path(__file__).parent.parent
-TRAIN_YAML_PATH = PROJECT_ROOT/"config"/"train.yaml"
+TRAIN_YAML_PATH = PROJECT_ROOT/"config"/"expander_train.yaml"
 API_YAML_PATH = PROJECT_ROOT/"config"/"api.yaml"
 
 
@@ -21,7 +21,7 @@ def _to_namespace(d:dict) -> SimpleNamespace:
             setattr(ns, key, value)
     return ns
 
-# param imports form traim.yaml
+# param imports form expander_train.yaml
 _train_yaml = _load_yaml(TRAIN_YAML_PATH)
 
 model_config = _to_namespace(_train_yaml["model"])
@@ -37,7 +37,7 @@ tokenizer_config.name = _active_tokenizer_name
 tokenizer_config.class_ = _tokenizer_block["class"]
 
 # Single source of truth for BPE tokenizers: symbol -> the id it must land on,
-# derived from model_config so it can never drift out of sync with train.yaml.
+# derived from model_config so it can never drift out of sync with expander_train.yaml.
 SPECIAL_TOKEN_IDS = {
     "<PAD>": model_config.pad_token_id,
     "<SOS>": model_config.sos_token_id,
@@ -51,9 +51,9 @@ SPECIAL_TOKENS = sorted(SPECIAL_TOKEN_IDS, key=SPECIAL_TOKEN_IDS.get)
 
 def get_tokenizer_class(name: str = None):
     """
-    Resolve a tokenizer class by name (module + class from train.yaml's
+    Resolve a tokenizer class by name (module + class from expander_train.yaml's
     `tokenizers:` block). Defaults to whichever tokenizer is currently
-    active (`tokenizer:` in train.yaml) when no name is given.
+    active (`tokenizer:` in expander_train.yaml) when no name is given.
     """
     import importlib
 

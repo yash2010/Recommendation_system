@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from model.attention import MultiHeadAttention
-from model.config import model_config
+from expander_model.attention import MultiHeadAttention
+from expander_model.config import model_config
 
 class FeedForward(nn.Module):
 

@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from model.encoder import Encoder
-from model.decoder import Decoder
-from model.tokenizers.bpe_library import Tokenizer
-from model.config import model_config, inference_config
+from expander_model.encoder import Encoder
+from expander_model.decoder import Decoder
+from expander_model.tokenizers.bpe_library import Tokenizer
+from expander_model.config import model_config, inference_config
 
 class QueryExpander(nn.Module):
 
