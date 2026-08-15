@@ -1,38 +1,71 @@
 # 🎬 Semantic Movie Recommendation System
 
-A movie recommendation system that finds films based on natural language descriptions rather than keyword matching. Built from scratch using transformer embeddings, semantic similarity search, and an optional LLM query expansion layer, all served through a REST API.
+A movie recommendation system that finds films based on natural language descriptions rather than keyword matching. Built from scratch using transformer embeddings, semantic similarity search, and an optional LLM query expansion layer, all served through a REST API with a web UI on top.
 
 ---
 
 ## ✨ Features
 
 - **Semantic search** - finds movies by meaning, not just keywords
-- **Query expansion** - automatically enriches vague queries using a local LLM (Ollama)
-- **Custom transformer** - seq2seq query expander built from scratch in PyTorch
-- **Movies** indexed from Wikipedia
-- **REST API** - FastAPI with interactive Swagger docs
-- **Two expander modes** - Ollama (high quality) or local trained model (offline)
+- **Query expansion** - enriches vague queries via Ollama, a from-scratch trained transformer, or a fine-tuned FLAN-T5
+- **Custom transformer** - seq2seq query expander (encoder/decoder + attention) built from scratch in PyTorch, with a choice of tokenizers (word-level, BPE via HuggingFace, or BPE from scratch)
+- **TMDB-backed data pipeline** - fetches, processes, and checkpoints movie data from The Movie Database API across multiple languages
+- **SQLite-backed storage** - movies, users, and interactions all live in one database
+- **User feedback loop** - logs clicks/ratings/watches per user and exposes history/stats for future personalization
+- **REST API** - FastAPI with interactive Swagger docs, optional access-code auth
+- **Web UI** - a static front end (`static/index.html`) served directly by the API
 - **Similar movies** - find movies similar to any movie by ID
-- **Genre filtering** - filter results by genre
+- **Title & genre search** - look movies up by title or filter results by genre
 
 ---
 
 ## 🏗️ Architecture
 
 ```
+TMDB API
+   │  (data_pipeline: fetcher -> processor -> exporter)
+   ▼
+data/tmdb_movies.csv  ──►  scripts/csv2db.py  ──►  data/movies.db (SQLite)
+   │                                                   │
+   │  scripts/build_index.py                           │  users, interactions
+   ▼                                                   ▼
+artifacts/embeddings.npy (all-MiniLM-L6-v2)      feedback / history endpoints
+
 User types a description
         │
-Query Expansion (Ollama / Custom Transformer)
+Query Expansion (Ollama / custom transformer / fine-tuned FLAN-T5)
   "a dark thriller" -> "A psychologically intense thriller
                         featuring an unreliable narrator..."
         │
 Sentence Transformer Embedding (all-MiniLM-L6-v2)
-  Text -> dimensional vector
         │
-Cosine Similarity Search
-  Query vector · Movie vectors 
+Cosine Similarity Search over artifacts/embeddings.npy
         │
-Top-k Results via REST API
+Top-k Results via REST API / Web UI
+```
+
+---
+
+## 📁 Project Layout
+
+```
+api.py                  FastAPI app - endpoints, lifespan startup
+recommender.py           Loads embeddings + movie DB, does similarity search
+database.py              SQLite access - users, interactions, feedback, stats
+expander_train.py        Trains the from-scratch query-expander transformer
+
+config/
+  api.yaml               Server, database, and expander-mode settings
+  expander_train.yaml    Custom transformer architecture + training hyperparams
+  finetune.yaml          FLAN-T5 fine-tuning config
+
+data_pipeline/           TMDB fetch -> process -> export pipeline
+expander_model/          Custom transformer (attention, encoder/decoder, tokenizers)
+expanders/               Pluggable query expanders (Ollama, local, fine-tuned) behind a common base class
+scripts/                 One-off / operational scripts (fetch, migrate, build index, train, inspect)
+retrievar_model/         WIP - custom bi-encoder retriever intended to replace all-MiniLM-L6-v2
+static/                  Web UI (index.html) + Privacy/Terms pages
+tests/                   pytest suite (API, DB, model components)
 ```
 
 ---
@@ -46,57 +79,68 @@ git clone https://github.com/yash2010/movie_recommendation_system.git
 cd movie_recommendation_system
 ```
 
-Install dependencies using 
+Install dependencies with conda:
 
 ```bash
 conda env create -f environment.yml
 ```
 
-
-### 2. Get the dataset
-
-This project uses the **Wikipedia Movie Plots** dataset by Justin Robischon.
-- **Source:** [Kaggle - Wikipedia Movie Plots](https://www.kaggle.com/datasets/jrobischon/wikipedia-movie-plots)
-- **Size:** ~35,000 movies with full Wikipedia plot descriptions
-- **Columns:** Release Year, Title, Origin/Ethnicity, Director, Cast, Genre, Wiki Page, Plot, PlotSummary
-
-Download the Wikipedia Movie Plots dataset and place it in `data/`:
-
-The CSV should have these columns:
-`release_year, title, origin_ethnicity, director, cast, genre, wiki_page, plot, plotsummary`
-
-### 3. Clean the data
+or with pip:
 
 ```bash
-python clean_data.py
+pip install -r requirements.txt
 ```
-The cleaned dataset will be stored under the path:
-```
-data/movies_clean.csv
-```
-### 4. Build the embedding index
 
-This embeds all the movies using sentence-transformers.
+### 2. Configure environment variables
+
+Create a `.env` file in the project root:
+
+```
+TMDB_TOKEN=your_tmdb_api_read_token
+ACCESS_CODE=optional_shared_secret_for_the_api
+```
+
+`TMDB_TOKEN` is required to fetch data from TMDB. `ACCESS_CODE` is optional - if set, every request must include an `X-Access-Code` header matching it (see `config/api.yaml`).
+
+### 3. Fetch movie data from TMDB
 
 ```bash
-python build_index.py
+python scripts/fetch_tmdb.py --pages 500 --languages en,ta,ko
 ```
 
-### 5. Start Ollama (for query expansion)
+This calls the TMDB discover/details endpoints, checkpoints progress to `data/tmdb_movies.csv`, and skips movie IDs it has already fetched on subsequent runs. Pipeline behavior (rate limiting, retries, min votes/popularity, output paths) is controlled by `data_pipeline/config.yaml`.
+
+### 4. Migrate data into SQLite
+
+```bash
+python scripts/csv2db.py
+```
+
+Loads `data/tmdb_movies.csv` (or `data/movies_final.parquet`) into `data/movies.db`, and creates the `users`/`interactions` tables used for feedback logging.
+
+### 5. Build the embedding index
+
+```bash
+python scripts/build_index.py
+```
+
+Embeds every movie with `sentence-transformers/all-MiniLM-L6-v2` and saves `artifacts/embeddings.npy` + `artifacts/movies.parquet`.
+
+### 6. (Optional) Start Ollama for query expansion
 
 ```bash
 # Install Ollama from https://ollama.com
-ollama pull llama3
+ollama pull llama3.2:1b
 ollama serve
 ```
 
-### 6. Start the API
+### 7. Start the API
 
 ```bash
 uvicorn api:app --reload
 ```
 
-Visit `http://localhost:8000/docs` for interactive API documentation.
+Visit `http://localhost:8000/` for the web UI, or `http://localhost:8000/docs` for interactive API documentation.
 
 ---
 
@@ -113,7 +157,8 @@ curl -X POST http://localhost:8000/recommend \
     "query": "a dark psychological thriller",
     "top_k": 5,
     "genre_filter": "thriller",
-    "expand_query": true
+    "expand_query": true,
+    "search_mode": "semantic"
   }'
 ```
 
@@ -130,12 +175,15 @@ curl -X POST http://localhost:8000/recommend \
       "genre": "thriller",
       "director": "John Huddles",
       "plot_summary": "...",
-      "score": 0.5843
+      "score": 0.5843,
+      "movie_id": 15853
     }
   ],
   "took_ms": 68.06
 }
 ```
+
+Set `"search_mode": "title"` to look a movie up by name instead of by description.
 
 ### `GET /similar/{movie_id}`
 
@@ -153,45 +201,81 @@ Search movies by title to find `movie_id`.
 curl "http://localhost:8000/movies/search?title=inception"
 ```
 
+### `POST /feedback`
+
+Log a user interaction (`click`, `rate`, or `watch`) for future personalization.
+
+```bash
+curl -X POST http://localhost:8000/feedback \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "u1", "movie_id": 15853, "title": "After the Dark", "action": "rate", "rating": 4.5}'
+```
+
+### `GET /history/{user_id}`
+
+Fetch a user's logged interactions.
+
+```bash
+curl "http://localhost:8000/history/u1?limit=20"
+```
+
 ### `GET /health`
 
-Check system status.
+Check system status (movies indexed, active expander).
 
 ```bash
 curl http://localhost:8000/health
 ```
 
+If `ACCESS_CODE` is set in `.env`, all requests above must also include `-H "X-Access-Code: <your code>"`.
+
 ---
 
 ## 🔧 Configuration
 
-### Switch between expanders
+All runtime settings live in `config/*.yaml` (loaded via `expander_model/config.py` and `data_pipeline/config.py`), not hardcoded constants:
 
-```bash
-# Use Ollama (default, best quality)
-uvicorn api:app --reload
+- **`config/api.yaml`** - CORS origins, DB path, and `expander.mode` (`ollama` or `local`)
+- **`config/expander_train.yaml`** - custom transformer architecture, tokenizer choice, and training hyperparameters
+- **`config/finetune.yaml`** - FLAN-T5 fine-tuning config (base model, data split, epochs)
+- **`data_pipeline/config.yaml`** - TMDB fetch settings (languages, rate limiting, min votes/popularity, checkpointing)
 
-# Use local trained model (offline, faster)
-set EXPANDER=local  # Windows
-export EXPANDER=local  # Mac/Linux
-uvicorn api:app --reload
+### Switch expander mode
+
+Edit `config/api.yaml`:
+
+```yaml
+expander:
+  mode: local   # or: ollama
 ```
+
+If `local` is selected but no trained checkpoint exists, the API falls back to Ollama automatically.
 
 ### Train the custom query expander
 
 ```bash
-# Generate training data (requires Ollama)
-python generate_training_data.py
+# Generate training pairs (requires Ollama)
+python scripts/expanderTraining_data.py
 
-# Train the model
-python train.py
+# Train
+python expander_train.py
 ```
+
+Runs are saved under `artifacts/expander/runs/<timestamp>_...`; `LocalExpander` auto-selects the run with the lowest validation loss.
+
+### Fine-tune FLAN-T5 (alternative expander)
+
+```bash
+python scripts/finetune_flan_t5.py
+```
+
+Saves to `artifacts/expander_finetuned/best_model`, loadable via `expanders/finetuned_expander.py`.
 
 ---
 
 ## 🧠 Custom Transformer
 
-The query expander is a seq2seq transformer built entirely from scratch in PyTorch - no pretrained weights, no Hugging Face models.
+The from-scratch query expander (`expander_model/`) is a seq2seq transformer - encoder, decoder, multi-head attention, and transformer blocks all implemented directly in PyTorch, no pretrained weights. It supports three interchangeable tokenizers (`word_level`, `bpe_library`, `bpe_scratch`), selected in `config/expander_train.yaml`.
 
 ## 📊 How Semantic Search Works
 
@@ -203,7 +287,17 @@ Traditional keyword search matches exact words. Semantic search matches meaning:
 | "film that makes you think" | No matches (too vague) | Philosophical dramas, thought-provoking sci-fi |
 | "something like Inception" | No matches | Mind-bending sci-fi, non-linear narratives |
 
-The system encodes both movies and queries as a dimensional vectors using `all-MiniLM-L6-v2`. Cosine similarity between vectors measures semantic relatedness. Higher score = more similar meaning.
+Movies and queries are both encoded as vectors with `all-MiniLM-L6-v2`. Cosine similarity between vectors measures semantic relatedness — higher score = more similar meaning.
+
+---
+
+## 🧪 Tests
+
+```bash
+pytest
+```
+
+Covers the API, database layer, and custom transformer components (attention, blocks, encoder, decoder, dataset, tokenizer).
 
 ---
 
@@ -218,10 +312,10 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [sentence-transformers](https://www.sbert.net/) for the embedding model
 - [FastAPI](https://fastapi.tiangolo.com/) for the web framework
 - [Ollama](https://ollama.com/) for local LLM inference
-- [Kaggle](https://www.kaggle.com/) for movie dataset
+- [The Movie Database (TMDB)](https://www.themoviedb.org/) for movie data
 
 ## Note
 
-⚠️**Work in Progress**
+⚠️ **Work in Progress**
 
-This recommendation system is till under development and is currently under development and is not yet fully complete. At the moment, only the semantic search functionality has been implemented. Additional features, enhancements, and optimizations are planned and will be introduced in future updates.
+This project is under active development. Semantic search, query expansion, the feedback/history endpoints, and the web UI are functional. A custom bi-encoder retriever (`retrievar_model/`) is in progress to replace `all-MiniLM-L6-v2`. Additional features and optimizations are planned.
