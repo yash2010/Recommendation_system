@@ -104,12 +104,10 @@ class Recommender:
     def search_by_title(self, query: str, top_k: int = 5) -> list[Moviematch]:
         query_clean = query.strip().lower()
         
-        # Try exact substring match first
         mask = self.movies["title"].str.lower().str.contains(
             query_clean, regex=False, na=False
         )
         
-        # If no results — try matching ALL words individually
         if mask.sum() == 0:
             words = query_clean.split()
             mask = pd.Series([True] * len(self.movies), index=self.movies.index)
@@ -122,7 +120,6 @@ class Recommender:
 
         matches = self.movies[mask].sort_values("release_year", ascending=False)
 
-        # If still no results — fall back to semantic search
         if len(matches) == 0:
             return self.search(query, top_k=top_k)
 
