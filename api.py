@@ -73,7 +73,7 @@ app.add_middleware(CORSMiddleware,
 # Response models - pydantix models
 class RecommendRequest(BaseModel):
     query:str = Field(..., min_length=3, description="Free-text movie description")
-    top_k:int = Field(5, ge=1, le=20)
+    top_k:int = Field(20, ge=1, le=20)
     genre_filter:str|None = Field(None, description="Filter by genre e.g. 'drama'")
     expand_query:bool = Field(True,  description="Use LLM to expand vague queries")
     search_mode:str = Field("semantic", description = "'semantic' - find by description | 'title' - find by movie name")
@@ -85,9 +85,11 @@ class MovieResult(BaseModel):
     year: int
     genre: str
     director: str
+    cast: str
     plot_summary: str
     score: float
     movie_id: int = 0
+    poster_url: str = ""
 
 class RecommendResponse(BaseModel):
     query: str
@@ -106,7 +108,7 @@ class FeedbackRequest(BaseModel):
     movie_id:int = Field(...)
     title:str =Field(...)
     action:str = Field(...)
-    rating:float = Field(None, ge=1.0, le=5.0)
+    rating:float = Field(None, ge=1.0, le=10.0)
     query:str = Field(None)
 
 class FeedbackResponse(BaseModel):
@@ -138,7 +140,7 @@ def feedback(req: FeedbackRequest, _=Depends(verify_access)):
     )
     return FeedbackResponse(
         interaction_id = interaction_id,
-        message        = f"Logged {req.action} for {req.title}"
+        message = f"Logged {req.action} for {req.title}"
     )
 
 @app.get("/history/{user_id}", response_model=HistoryResponse)
@@ -181,9 +183,11 @@ def recommend(req: RecommendRequest, _=Depends(verify_access)):
                                         year= r.year,
                                         genre= r.genre,
                                         director= r.director,
+                                        cast=r.cast,
                                         plot_summary= r.plot_summary[:300],
                                         score= r.score,
-                                        movie_id = r.movie_id)
+                                        movie_id = r.movie_id,
+                                        poster_url = r.poster_url)
                                     
                                     for r in results                    
                                 ],
@@ -212,11 +216,13 @@ def recommend(req: RecommendRequest, _=Depends(verify_access)):
                                     year= r.year,
                                     genre= r.genre,
                                     director= r.director,
+                                    cast = r.cast,
                                     plot_summary= r.plot_summary[:300],
                                     score= r.score,
-                                    movie_id = r.movie_id)
-                                 
-                                for r in results                    
+                                    movie_id = r.movie_id,
+                                    poster_url = r.poster_url)
+
+                                for r in results
                              ],
                              took_ms= round(took_ms, 2),
                              )
@@ -240,10 +246,12 @@ def similar(movie_id: int, top_k: int = Query(default=5, ge=1, le=20)):
                                     year= r.year,
                                     genre= r.genre,
                                     director= r.director,
+                                    cast = r.cast,
                                     plot_summary= r.plot_summary[:300],
                                     score= r.score,
-                                    movie_id = r.movie_id)
-                                for r in results                    
+                                    movie_id = r.movie_id,
+                                    poster_url = r.poster_url)
+                                for r in results
                              ],)
 
 
@@ -268,6 +276,7 @@ def search_movies(
                 "year": int(row["release_year"]),
                 "genre": row["genre"],
                 "director": row["director"],
+                "cast": row["cast"]
             }
             for _, row in matches.iterrows()
         ]
