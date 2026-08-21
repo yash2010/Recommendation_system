@@ -66,7 +66,7 @@ class TMDBProcessor:
         if not raw:
             return None
 
-        title    = raw.get("title", "").strip()
+        title = raw.get("title", "").strip()
         overview = self.extract_overview(raw)
 
         if not title or not overview:
@@ -77,16 +77,16 @@ class TMDBProcessor:
         credits  = raw.get("credits", {})
 
         return {
-            "movie_id":          raw.get("id"),
-            "title":             title,
-            "release_year":      self.extract_year(raw),
-            "genre":             self.extract_genres(raw),
-            "director":          self.extract_director(credits),
-            "cast":              self.extract_cast(credits),
-            "plotsummary":       overview,
-            "tmdb_rating":       round(raw.get("vote_average", 0.0), 1),
-            "tmdb_votes":        raw.get("vote_count", 0),
-            "poster_url":        self.extract_poster_url(raw),
+            "movie_id": raw.get("id"),
+            "title": title,
+            "release_year": self.extract_year(raw),
+            "genre": self.extract_genres(raw),
+            "director": self.extract_director(credits),
+            "cast": self.extract_cast(credits),
+            "plotsummary": overview,
+            "tmdb_rating": round(raw.get("vote_average", 0.0), 1),
+            "tmdb_votes": raw.get("vote_count", 0),
+            "poster_url": self.extract_poster_url(raw),
             "original_language": raw.get("original_language", ""),
-            "source":            "tmdb",
+            "source": "tmdb",
         }

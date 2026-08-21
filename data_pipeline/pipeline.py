@@ -12,10 +12,10 @@ from data_pipeline.exporter import DataExporter
 class TMDBPipeline:
 
     def __init__(self, config=None):
-        self.config    = config or pipeline_config
-        self.fetcher   = TMDBFetcher(self.config.tmdb)
+        self.config = config or pipeline_config
+        self.fetcher = TMDBFetcher(self.config.tmdb)
         self.processor = TMDBProcessor(self.config.tmdb)
-        self.exporter  = DataExporter(self.config)
+        self.exporter = DataExporter(self.config)
 
     def _load_existing_ids(self) -> set:
 
@@ -26,7 +26,7 @@ class TMDBPipeline:
         try:
             existing = pd.read_csv(output, usecols=["movie_id"], encoding="utf-8")
             ids = set(existing["movie_id"].dropna().astype(int))
-            print(f"Loaded {len(ids):,} existing movie_ids — these will be skipped\n")
+            print(f"Loaded {len(ids):,} existing movie_ids, these will be skipped\n")
             return ids
         except Exception as e:
             print(f"Could not read existing file for ID skip check: {e}")
@@ -34,10 +34,10 @@ class TMDBPipeline:
 
     def _fetch_language(
         self,
-        language:     str,
-        seen_ids:     set,
+        language: str,
+        seen_ids: set,
         existing_ids: set,
-        movies:       list,
+        movies: list,
     ) -> None:
        
         cfg       = self.config.tmdb
@@ -53,7 +53,7 @@ class TMDBPipeline:
             raw_results = self.fetcher.discover_page(page=page, language=language)
 
             if not raw_results:
-                print(f"   Page {page}: no results — stopping {lang_name}")
+                print(f" Page {page}: no results - stopping {lang_name}")
                 break
 
             for movie in raw_results:
@@ -90,19 +90,19 @@ class TMDBPipeline:
             if len(movies) > 0 and len(movies) % cfg.checkpoint_every < 20:
                 self.exporter.save_checkpoint(movies, cfg.output_path)
 
-        print(f"   {lang_name} complete: {new_for_language} new movies, "
+        print(f" {lang_name} complete: {new_for_language} new movies, "
               f"{skipped_already_have} skipped (already had them)")
 
     def run_discover(self) -> list:
        
-        movies       = []
-        seen_ids     = set()
-        cfg          = self.config.tmdb
+        movies = []
+        seen_ids = set()
+        cfg = self.config.tmdb
         existing_ids = self._load_existing_ids()
 
         estimated = len(cfg.languages) * cfg.max_pages * 20 * cfg.delay / 3600
         print(f"Languages: {cfg.languages}")
-        print(f"Estimated time (upper bound, before ID-skip savings): ~{estimated:.1f} hours\n")
+        print(f"Estimated time : ~{estimated:.1f} hours\n")
 
         for language in cfg.languages:
             self._fetch_language(language, seen_ids, existing_ids, movies)
@@ -111,9 +111,9 @@ class TMDBPipeline:
 
     def run_from_exports(self) -> list:
 
-        cfg          = self.config.tmdb
-        movies       = []
-        seen_ids     = set()
+        cfg = self.config.tmdb
+        movies = []
+        seen_ids = set()
         existing_ids = self._load_existing_ids()
 
         print("Phase 1: Downloading TMDB export file...")
@@ -124,7 +124,7 @@ class TMDBPipeline:
             return self.run_discover()
 
         ids_to_fetch = [mid for mid in all_ids if mid not in existing_ids]
-        skipped      = len(all_ids) - len(ids_to_fetch)
+        skipped = len(all_ids) - len(ids_to_fetch)
         print(f"\nExport IDs: {len(all_ids):,} total, "
               f"{skipped:,} already have, {len(ids_to_fetch):,} to fetch")
 
@@ -133,7 +133,7 @@ class TMDBPipeline:
                 continue
             seen_ids.add(movie_id)
 
-            raw       = self.fetcher.movie_details(movie_id)
+            raw = self.fetcher.movie_details(movie_id)
             time.sleep(cfg.delay)
 
             processed = self.processor.process(raw)
@@ -167,9 +167,9 @@ class TMDBPipeline:
         print("=" * 55)
         print("  TMDB Movie Data Pipeline")
         print("=" * 55)
-        print(f"  Mode:      {'Export file' if cfg.use_exports else 'Discover API'}")
+        print(f"  Mode: {'Export file' if cfg.use_exports else 'Discover API'}")
         print(f"  Languages: {cfg.languages}")
-        print(f"  Output:    {self.config.final_output}")
+        print(f"  Output: {self.config.final_output}")
         print("=" * 55)
 
         if cfg.use_exports:

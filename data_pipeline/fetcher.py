@@ -9,10 +9,10 @@ from data_pipeline.config import tmdb_config
 class TMDBFetcher:
 
     def __init__(self, config=None):
-        self.config  = config or tmdb_config
+        self.config = config or tmdb_config
         self.headers = {
             "Authorization": f"Bearer {self.config.token}",
-            "accept":        "application/json",
+            "accept": "application/json",
         }
         self._validate()
 
@@ -29,7 +29,7 @@ class TMDBFetcher:
             res = requests.get(
                 f"{self.config.base_url}{endpoint}",
                 headers = self.headers,   
-                params  = params,             
+                params = params,             
                 timeout = self.config.timeout,
             )
 
@@ -66,8 +66,8 @@ class TMDBFetcher:
 
     def discover_page(self, page: int, language: str = None) -> list[dict]:
         params = {
-            "sort_by":        self.config.sort_by,
-            "page":           page,
+            "sort_by": self.config.sort_by,
+            "page": page,
             "vote_count.gte": self.config.min_votes,
             "popularity.gte": self.config.min_popularity,
         }
@@ -78,10 +78,7 @@ class TMDBFetcher:
         return data.get("results", []) if data else []
 
     def movie_details(self, movie_id: int) -> dict | None:
-        return self.get(
-            f"/movie/{movie_id}",
-            params={"append_to_response": "credits,translations"},
-        )
+        return self.get(f"/movie/{movie_id}", params={"append_to_response": "credits,translations"})
 
     def export_ids(self, date_str: str = None) -> list[int]:
         if not date_str:
@@ -96,10 +93,10 @@ class TMDBFetcher:
 
             if res.status_code != 200:
                 day_before = datetime.now() - timedelta(days=2)
-                date_str   = day_before.strftime("%m_%d_%Y")
-                url        = f"https://files.tmdb.org/p/exports/movie_ids_{date_str}.json.gz"
+                date_str = day_before.strftime("%m_%d_%Y")
+                url = f"https://files.tmdb.org/p/exports/movie_ids_{date_str}.json.gz"
                 print(f"Trying previous day: {url}")
-                res        = requests.get(url, timeout=120, stream=True)
+                res = requests.get(url, timeout=120, stream=True)
                 if res.status_code != 200:
                     print("Export file not available — falling back to discover")
                     return []
