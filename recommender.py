@@ -12,9 +12,11 @@ class Moviematch:
     year: int
     genre: str
     director: str
+    cast: str
     plot_summary: str
     score: float
-    movie_id: int 
+    movie_id: int
+    poster_url: str
 
     def display(self):
         print(f"\n# {self.rank}: {self.title} ({self.year})")
@@ -66,9 +68,11 @@ class Recommender:
                 year=int(movie["release_year"]),
                 genre=movie["genre"],
                 director=movie["director"],
+                cast=movie["cast"],
                 plot_summary=movie["plotsummary"],
                 score=float(scores[idx]),
-                movie_id = int(movie["movie_id"])
+                movie_id = int(movie["movie_id"]),
+                poster_url = movie["poster_url"],
             ))
         return results
     
@@ -95,9 +99,11 @@ class Recommender:
                 year = int(movie["release_year"]),
                 genre = movie["genre"],
                 director = movie["director"],
+                cast = movie["cast"],
                 plot_summary = movie["plotsummary"],
                 score = float(scores[idx]),
                 movie_id = int(movie["movie_id"]),
+                poster_url = movie["poster_url"],
             ))
         return results
     
@@ -134,9 +140,11 @@ class Recommender:
                 year         = int(row["release_year"]),
                 genre        = row["genre"],
                 director     = row["director"],
+                cast         = row["cast"],
                 plot_summary = row["plotsummary"],
                 score        = 1.0,
                 movie_id     = int(row["movie_id"]),
+                poster_url   = row["poster_url"],
             ))
 
         if len(results) < top_k and len(results) > 0:
