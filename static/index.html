@@ -306,6 +306,40 @@
       border-radius: var(--radius);
       padding: 20px;
       margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .movie-poster {
+      aspect-ratio: 2 / 3;
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--chip);
+      border: 1px solid var(--line-soft);
+      position: relative;
+    }
+    .movie-poster img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .poster-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--serif);
+      font-size: 28px;
+      color: var(--fg3);
+      background: repeating-linear-gradient(135deg, var(--chip) 0 6px, var(--line-soft) 6px 12px);
+    }
+    @media (max-width: 560px) {
+      .movie-card { grid-template-columns: 72px 1fr; gap: 12px; }
     }
     .movie-header {
       display: flex;
@@ -361,16 +395,19 @@
       color: var(--fg3);
     }
     .star-btn {
-      padding: 4px;
+      min-width: 0;
+      padding: 0;
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 18px;
-      opacity: 0.5;
-      transition: opacity 0.15s, transform 0.15s;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--line-soft);
+      opacity: 1;
+      transition: transform 0.15s, color 0.15s;
     }
-    .star-btn:hover { opacity: 0.8; transform: scale(1.1); }
-    .star-btn.rated { opacity: 1; }
+    .star-btn:hover { transform: scale(1.15); color: var(--accent); }
+    .star-btn.rated { color: var(--accent); }
     .rated-thanks {
       font-family: var(--mono);
       font-size: 11px;
@@ -470,9 +507,9 @@
           By Title
         </label>
         <label class="mode-btn">
-          <input type="radio" name="searchMode" value="description" onchange="onModeChange()" />
+          <input type="radio" name="searchMode" value="semantic" onchange="onModeChange()" />
           <span class="radio-dot"></span>
-          By Vibe
+          By Description
         </label>
       </div>
 
@@ -583,15 +620,13 @@
       const modeHint    = document.getElementById("modeHint");
 
       if (mode === "title") {
-        queryInput.placeholder          = "e.g. Inception, The Dark Knight...";
-        expandLabel.style.opacity       = "0.3";
-        expandLabel.style.pointerEvents = "none";
-        modeHint.textContent            = "🎬 Type a movie title — we'll find it and recommend similar movies.";
+        queryInput.placeholder = "e.g. Inception, The Dark Knight...";
+        expandLabel.style.display = "none";
+        modeHint.textContent   = "🎬 Type a movie title — we'll find it and recommend similar movies.";
       } else {
-        queryInput.placeholder          = "e.g. a dark psychological thriller...";
-        expandLabel.style.opacity       = "1";
-        expandLabel.style.pointerEvents = "auto";
-        modeHint.textContent            = "💡 Describe what you want to watch — we'll find the best matches.";
+        queryInput.placeholder = "e.g. a dark psychological thriller...";
+        expandLabel.style.display = "flex";
+        modeHint.textContent   = "💡 Describe what you want to watch — we'll find the best matches.";
       }
     }
 
@@ -616,7 +651,7 @@
           headers: getHeaders(),
           body:    JSON.stringify({
             query:        query,
-            top_k:        5,
+            top_k:        20,
             expand_query: mode === "title" ? false : expandQuery,
             user_id:      currentUser,
             search_mode:  mode,
@@ -643,6 +678,19 @@
       }
     }
 
+    // ── Posters ───────────────────────────────────────────────────────────────
+    function escapeAttr(s) {
+      return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function posterHtml(m) {
+      var init = String(m.title || "?").trim().charAt(0).toUpperCase();
+      var img = m.poster_url
+        ? '<img src="' + escapeAttr(m.poster_url) + '" alt="' + escapeAttr(m.title) + ' poster" loading="lazy" onerror="this.remove()" />'
+        : "";
+      return '<div class="movie-poster"><div class="poster-fallback">' + init + '</div>' + img + '</div>';
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
     function renderResults(data, originalQuery) {
       if (!data.results || data.results.length === 0) {
@@ -663,13 +711,16 @@
         var badgeIcon  = isExact ? "✓" : "◎";
 
         var stars = "";
-        for (var r = 1; r <= 5; r++) {
-          var starEmoji = "";
-          for (var s = 0; s < r; s++) starEmoji += "⭐";
-          stars += '<button class="star-btn" id="star-' + m.rank + '-' + r + '" onclick="rate(' + m.rank + ',' + r + ')">' + starEmoji + '</button>';
+        for (var r = 1; r <= 10; r++) {
+          stars += '<button class="star-btn" id="star-' + m.rank + '-' + r +
+            '" onclick="rate(' + m.rank + ',' + r + ')" ' +
+            'onmouseenter="previewHearts(' + m.rank + ',' + r + ')" ' +
+            'onmouseleave="previewHearts(' + m.rank + ',0)">&#9829;</button>';
         }
 
         return '<div class="movie-card">' +
+          posterHtml(m) +
+          '<div class="movie-body">' +
           '<div class="movie-header">' +
             '<div class="movie-title">' + m.rank + '. ' + m.title + ' <span style="font-weight:400;color:var(--fg3)">(' + m.year + ')</span></div>' +
             '<span class="badge ' + badgeClass + '">' + badgeIcon + ' ' + scoreText + '</span>' +
@@ -680,9 +731,10 @@
           '</div>' +
           '<p class="movie-plot">' + m.plot_summary + '</p>' +
           '<div class="rating-row">' +
-            '<span class="rating-label">Rate this:</span>' +
+            '<span class="rating-label">Rate</span>' +
             stars +
             '<span class="rated-thanks" id="thanks-' + m.rank + '">Thanks! ✓</span>' +
+          '</div>' +
           '</div>' +
         '</div>';
       }).join("");
@@ -692,6 +744,20 @@
     }
 
     // ── Rate ──────────────────────────────────────────────────────────────────
+    function previewHearts(rank, hoveredLevel) {
+      for (var r = 1; r <= 10; r++) {
+        var btn = document.getElementById("star-" + rank + "-" + r);
+        if (!btn) continue;
+        if (hoveredLevel > 0) {
+          btn.classList.toggle("rated", r <= hoveredLevel);
+        } else if (btn.dataset.committed === "1") {
+          btn.classList.add("rated");
+        } else {
+          btn.classList.remove("rated");
+        }
+      }
+    }
+
     async function rate(rank, rating) {
       var movie = null;
       for (var i = 0; i < currentResults.length; i++) {
@@ -721,14 +787,13 @@
         });
 
         if (res.ok) {
-          for (var r = 1; r <= 5; r++) {
+          var filledHearts = rating;
+          for (var r = 1; r <= 10; r++) {
             var btn = document.getElementById("star-" + rank + "-" + r);
             if (btn) {
-              if (r === rating) {
-                btn.classList.add("rated");
-              } else {
-                btn.classList.remove("rated");
-              }
+              var filled = r <= filledHearts;
+              btn.classList.toggle("rated", filled);
+              btn.dataset.committed = filled ? "1" : "0";
             }
           }
           var thanks = document.getElementById("thanks-" + rank);
@@ -736,7 +801,7 @@
             thanks.style.display = "inline";
             setTimeout(function() { thanks.style.display = "none"; }, 2000);
           }
-          console.log("Rated:", movie.title, rating, "stars");
+          console.log("Rated:", movie.title, rating, "/10");
         } else {
           var errText = await res.text();
           console.error("Feedback failed:", res.status, errText);
@@ -753,6 +818,7 @@
 
     // Keyboard shortcuts
     document.addEventListener("DOMContentLoaded", function() {
+      onModeChange();
       document.getElementById("loginName").addEventListener("keypress", function(e) {
         if (e.key === "Enter") document.getElementById("loginCode").focus();
       });
